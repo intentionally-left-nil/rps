@@ -22,6 +22,17 @@ class User(TypedDict):
     name: str
 
 
+class GameStateUser(TypedDict):
+    name: str
+    score: int
+
+
+class GameState(TypedDict):
+    p1: Optional[GameStateUser]
+    p2: Optional[GameStateUser]
+    current_round: int
+
+
 class JSONBadRequest(BadRequest):
     pass
 
@@ -56,6 +67,29 @@ def join_game_as_player(game_id: str, player_id: str) -> bool:
     return False
 
 
+@app.get('/game/<id>')
+def get_game_state(id: str):
+    [p1_raw, p2_raw, p1_score, p2_score, round] = r.hmget(game_key(id), 'p1', 'p2', 'p1_score', 'p2_score', 'round')
+    p1 = load_player(p1_raw)
+    p2 = load_player(p2_raw)
+    result: GameState = {
+        'current_round': max(1, bytes_to_int(round)),
+        'p1': None,
+        'p2': None,
+    }
+    if p1:
+        result['p1'] = {
+            'name': p1['name'],
+            "score": bytes_to_int(p1_score)
+        }
+    if p2:
+        result['p2'] = {
+            "name": p2['name'],
+            "score": bytes_to_int(p2_score)
+        }
+    return jsonify(result)
+
+
 # snippet from https://pypi.org/project/flask-expects-json
 @app.errorhandler(400)
 def bad_request(error):
@@ -80,6 +114,15 @@ def load_player(data: (bytes | None)) -> Optional[User]:
         return json.loads(data)
     else:
         return None
+
+
+def bytes_to_int(b: (bytes | None)) -> int:
+    if not b:
+        return 0
+    try:
+        return int(b.decode('utf-8'))
+    except ValueError:
+        return 0
 
 
 def init():
