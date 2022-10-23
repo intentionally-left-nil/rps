@@ -42,3 +42,23 @@ etc. etc.
 Can only create roundN_p1 iff roundN-1_p1 and roundN-1_p2 exist (unless beginning)
 
 Can increment round when roundN_p1 and p2 have played
+
+# Milestone 2
+
+- Implement a functional frontend for the before-game experience
+
+## Goal
+
+Take the flow from "I'm at the homepage, I want to start a game, and I'm waiting for someone to join"
+
+## Non-goals
+
+- Playing the game
+- Hooking up to the backend api (next milestone!)
+- Making it pretty
+
+### Plan
+
+1. Spin up a react frontend with create-react-app
+1. Make a landing page which has a `create game` button, which redirects to a random /game sub-url
+1. Make a game waiting page that asks you for your name
