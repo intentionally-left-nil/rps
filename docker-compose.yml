@@ -10,6 +10,14 @@ services:
       REDIS_URL: redis
     depends_on:
       - redis
+
+  ai_worker:
+    build:
+      context: ./ai_worker
+    environment:
+      REDIS_URL: redis
+    depends_on:
+      - redis
   redis:
     image: redis:7-alpine
     restart: always
