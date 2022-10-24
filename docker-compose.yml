@@ -1,6 +1,13 @@
 version: '3.7'
 
 services:
+  web:
+    build:
+      context: ./web
+    ports:
+      - '3000:3000'
+    depends_on:
+      - api
   api:
     build:
       context: ./api
