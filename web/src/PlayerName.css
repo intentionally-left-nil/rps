@@ -1,0 +1,7 @@
+.PlayerName {
+  max-width: 300px;
+}
+
+.PlayerName .table > :not(caption) > * > * {
+  border-bottom-width: 0;
+}
