@@ -13,7 +13,7 @@ defmodule Notif.RedisSubscriber do
         {:redix_pubsub, _pid, _ref, _message_type, %{payload: "game:" <> game_id}},
         state
       ) do
-    Logger.warn("Received game_updated for game #{game_id}")
+    Phoenix.PubSub.broadcast_from!(Notif.PubSub, self(), "redis:" <> game_id, "game_updated")
     {:noreply, state}
   end
 

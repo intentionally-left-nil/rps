@@ -6,6 +6,24 @@ import PlayerName from './PlayerName';
 import { useBackend, useLocalStorage } from './util';
 import InvitePlayer from './Invite';
 import { v4 as uuid4 } from 'uuid';
+import { Socket } from 'phoenix-socket';
+
+const useSocket = (id: string, onGameUpdated: () => void) => {
+  useEffect(() => {
+    const socket = new Socket('ws://localhost:4000/socket');
+    socket.connect();
+    const channel = socket.channel(`game_room:${id}`);
+    channel.join();
+    channel.on('game_updated', (resp: any) => {
+      console.log('game_updated', resp);
+      onGameUpdated();
+    });
+    return () => {
+      channel.leave();
+      socket.disconnect();
+    };
+  }, [id, onGameUpdated]);
+};
 
 const Game: React.FC<{ id: string }> = ({ id }) => {
   const [name, setName] = useLocalStorage('name', 'Player 1');
@@ -50,12 +68,10 @@ const Game: React.FC<{ id: string }> = ({ id }) => {
   useBackend(`game/${id}`, 'POST', playerData, onJoinGame);
 
   const [pollId, setPollId] = useState(0);
-  useEffect(() => {
-    const timeoutId = setInterval(() => {
-      setPollId((val) => val + 1);
-    }, 5000);
-    return () => clearInterval(timeoutId);
-  }, [pollId]);
+  const onGameUpdated = useCallback(() => {
+    setPollId((val) => val + 1);
+  }, []);
+  useSocket(id, onGameUpdated);
 
   useBackend(
     `game/${id}`,
