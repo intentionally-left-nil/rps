@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -11,7 +11,10 @@ const Game: React.FC<{ id: string }> = ({ id }) => {
   const [name, setName] = useLocalStorage('name', 'Player 1');
   const [userId] = useLocalStorage('user_id', uuid4());
   const [playerId, setPlayerId] = useState<string>();
-  const [opponentName, setOpponentName] = useState();
+  const [opponent, setOpponent] = useState<{
+    name: string;
+    score: number;
+  } | void>();
   const playerData = useMemo(() => {
     return {
       user_id: userId,
@@ -25,8 +28,41 @@ const Game: React.FC<{ id: string }> = ({ id }) => {
     },
     []
   );
+  const onOpponentJoined = useCallback<
+    (data: {
+      current_round: string;
+      p1: { name: string; score: number } | void;
+      p2: { name: string; score: number } | void;
+    }) => void
+  >(
+    (data) => {
+      console.log(data);
+      if (playerId == null) {
+        return;
+      }
+      const opponentId = playerId === 'p1' ? 'p2' : 'p1';
+
+      setOpponent(data[opponentId]);
+    },
+    [playerId]
+  );
 
   useBackend(`game/${id}`, 'POST', playerData, onJoinGame);
+
+  const [pollId, setPollId] = useState(0);
+  useEffect(() => {
+    const timeoutId = setInterval(() => {
+      setPollId((val) => val + 1);
+    }, 5000);
+    return () => clearInterval(timeoutId);
+  }, [pollId]);
+
+  useBackend(
+    `game/${id}`,
+    'GET',
+    useMemo(() => ({ pollId }), [pollId]),
+    onOpponentJoined
+  );
 
   return (
     <Container fluid className="pt-3">
@@ -37,9 +73,9 @@ const Game: React.FC<{ id: string }> = ({ id }) => {
           </Row>
         </Col>
         <Col>
-          {opponentName ? (
+          {opponent ? (
             <Row>
-              <PlayerName id="player2" initial={opponentName} readOnly={true} />
+              <div>{opponent.name}</div>
             </Row>
           ) : (
             <InvitePlayer id={id} />
