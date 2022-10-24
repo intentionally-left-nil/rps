@@ -1,6 +1,7 @@
 import os
 from flask import Flask, jsonify, make_response, g
 from flask.wrappers import Request, Response
+from flask_cors import CORS
 import json
 import redis
 from flask_expects_json import expects_json
@@ -9,6 +10,7 @@ from werkzeug.exceptions import BadRequest
 from jsonschema import ValidationError
 
 app = Flask('api')
+CORS(app)
 r = redis.Redis(host=os.environ.get('REDIS_URL', 'localhost'))
 
 
