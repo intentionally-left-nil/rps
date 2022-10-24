@@ -17,6 +17,13 @@ services:
       REDIS_URL: redis
     depends_on:
       - redis
+  notif:
+    build:
+      context: ./notif
+    ports:
+      - '4000:4000'
+    depends_on:
+      - redis
   redis:
     image: redis:7-alpine
     restart: always
