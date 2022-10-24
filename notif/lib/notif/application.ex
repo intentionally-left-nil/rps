@@ -13,9 +13,17 @@ defmodule Notif.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Notif.PubSub},
       # Start the Endpoint (http/https)
-      NotifWeb.Endpoint
+      NotifWeb.Endpoint,
       # Start a worker by calling: Notif.Worker.start_link(arg)
       # {Notif.Worker, arg}
+      %{
+        id: Redix.PubSub,
+        start: {Redix.PubSub, :start_link, ["redis://redis:6379/0", [name: :redpubsub]]}
+      },
+      %{
+        id: Notif.RedisSubscriber,
+        start: {Notif.RedisSubscriber, :start_link, [[]]}
+      }
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
